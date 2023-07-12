@@ -18,6 +18,7 @@ using Point = System.Drawing.Point;
 using netDxf.Tables;
 using System.Text;
 using System.IO;
+using System.Diagnostics;
 
 namespace CADability.DXF
 {
@@ -41,6 +42,7 @@ namespace CADability.DXF
         {
             using (Stream stream = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
+                MathHelper.Epsilon = 1e-8;
                 doc = DxfDocument.Load(stream);
             }
         }
@@ -486,7 +488,7 @@ namespace CADability.DXF
                     // BSplines with inner knots of multiplicity degree+1 make problems, because the spline have no derivative at these points
                     // so we split these splines
                     List<int> splitKnots = new List<int>();
-                    for (int i = degree+1; i < kn.Length - degree-1; i++)
+                    for (int i = degree + 1; i < kn.Length - degree - 1; i++)
                     {
                         if (kn[i] == kn[i - 1])
                         {
@@ -498,19 +500,19 @@ namespace CADability.DXF
                             if (sameKnot) splitKnots.Add(i - 1);
                         }
                     }
-                    if (splitKnots.Count>0)
+                    if (splitKnots.Count > 0)
                     {
                         List<ICurve> parts = new List<ICurve>();
                         BSpline part = bsp.TrimParam(kn[0], kn[splitKnots[0]]);
                         if (CADability.GeoPoint.Distance(part.Poles) > Precision.eps && (part as ICurve).Length > Precision.eps) parts.Add(part);
                         for (int i = 1; i < splitKnots.Count; i++)
                         {
-                            part = bsp.TrimParam(kn[splitKnots[i-1]], kn[splitKnots[i]]);
-                            if (CADability.GeoPoint.Distance(part.Poles) > Precision.eps && (part as ICurve).Length>Precision.eps) parts.Add(part);
+                            part = bsp.TrimParam(kn[splitKnots[i - 1]], kn[splitKnots[i]]);
+                            if (CADability.GeoPoint.Distance(part.Poles) > Precision.eps && (part as ICurve).Length > Precision.eps) parts.Add(part);
                         }
                         part = bsp.TrimParam(kn[splitKnots[splitKnots.Count - 1]], kn[kn.Length - 1]);
-                        
-                        if (CADability.GeoPoint.Distance(part.Poles)>Precision.eps && (part as ICurve).Length > Precision.eps) parts.Add(part);
+
+                        if (CADability.GeoPoint.Distance(part.Poles) > Precision.eps && (part as ICurve).Length > Precision.eps) parts.Add(part);
                         GeoObject.Path path = GeoObject.Path.Construct();
                         path.Set(parts.ToArray());
                         return path;
@@ -717,7 +719,7 @@ namespace CADability.DXF
                 }
                 else
                 {
-                    List<GeoObject.Hatch> list = new List<GeoObject.Hatch>();
+                    GeoObjectList list = new GeoObjectList();
                     for (int i = 0; i < hatch.Pattern.LineDefinitions.Count; i++)
                     {
                         if (i > 0) res = res.Clone() as GeoObject.Hatch;
@@ -734,7 +736,7 @@ namespace CADability.DXF
                     if (list.Count > 1)
                     {
                         GeoObject.Block block = GeoObject.Block.Construct();
-                        block.Set(new GeoObjectList(list as ICollection<IGeoObject>));
+                        block.Set(new GeoObjectList(list));
                         return block;
                     }
                     else return res;
@@ -1111,33 +1113,45 @@ namespace CADability.DXF
                 {
                     if (indices[0] != indices[1] && indices[1] != indices[2])
                     {
-                        Plane pln = new Plane(vertices[indices[0]], vertices[indices[1]], vertices[indices[2]]);
-                        PlaneSurface surf = new PlaneSurface(pln);
-                        Border bdr = new Border(new GeoPoint2D[] { new GeoPoint2D(0.0, 0.0), pln.Project(vertices[indices[1]]), pln.Project(vertices[indices[2]]) });
-                        SimpleShape ss = new SimpleShape(bdr);
-                        Face fc = Face.MakeFace(surf, ss);
-                        faces.Add(fc);
+                        try
+                        {
+                            Plane pln = new Plane(vertices[indices[0]], vertices[indices[1]], vertices[indices[2]]);
+                            PlaneSurface surf = new PlaneSurface(pln);
+                            Border bdr = new Border(new GeoPoint2D[] { new GeoPoint2D(0.0, 0.0), pln.Project(vertices[indices[1]]), pln.Project(vertices[indices[2]]) });
+                            SimpleShape ss = new SimpleShape(bdr);
+                            Face fc = Face.MakeFace(surf, ss);
+                            faces.Add(fc);
+                        }
+                        catch { };
                     }
                 }
                 else
                 {
                     if (indices[0] != indices[1] && indices[1] != indices[2])
                     {
-                        Plane pln = new Plane(vertices[indices[0]], vertices[indices[1]], vertices[indices[2]]);
-                        PlaneSurface surf = new PlaneSurface(pln);
-                        Border bdr = new Border(new GeoPoint2D[] { new GeoPoint2D(0.0, 0.0), pln.Project(vertices[indices[1]]), pln.Project(vertices[indices[2]]) });
-                        SimpleShape ss = new SimpleShape(bdr);
-                        Face fc = Face.MakeFace(surf, ss);
-                        faces.Add(fc);
+                        try
+                        {
+                            Plane pln = new Plane(vertices[indices[0]], vertices[indices[1]], vertices[indices[2]]);
+                            PlaneSurface surf = new PlaneSurface(pln);
+                            Border bdr = new Border(new GeoPoint2D[] { new GeoPoint2D(0.0, 0.0), pln.Project(vertices[indices[1]]), pln.Project(vertices[indices[2]]) });
+                            SimpleShape ss = new SimpleShape(bdr);
+                            Face fc = Face.MakeFace(surf, ss);
+                            faces.Add(fc);
+                        }
+                        catch { };
                     }
                     if (indices[2] != indices[3] && indices[3] != indices[0])
                     {
-                        Plane pln = new Plane(vertices[indices[2]], vertices[indices[3]], vertices[indices[0]]);
-                        PlaneSurface surf = new PlaneSurface(pln);
-                        Border bdr = new Border(new GeoPoint2D[] { new GeoPoint2D(0.0, 0.0), pln.Project(vertices[indices[3]]), pln.Project(vertices[indices[0]]) });
-                        SimpleShape ss = new SimpleShape(bdr);
-                        Face fc = Face.MakeFace(surf, ss);
-                        faces.Add(fc);
+                        try
+                        {
+                            Plane pln = new Plane(vertices[indices[2]], vertices[indices[3]], vertices[indices[0]]);
+                            PlaneSurface surf = new PlaneSurface(pln);
+                            Border bdr = new Border(new GeoPoint2D[] { new GeoPoint2D(0.0, 0.0), pln.Project(vertices[indices[3]]), pln.Project(vertices[indices[0]]) });
+                            SimpleShape ss = new SimpleShape(bdr);
+                            Face fc = Face.MakeFace(surf, ss);
+                            faces.Add(fc);
+                        }
+                        catch { };
                     }
                 }
             }

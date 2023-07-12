@@ -28,9 +28,6 @@ namespace CADability
     [Serializable]
     [DebuggerDisplayAttribute("(x,y,z)={DebugString}")]
     [JsonVersion(serializeAsStruct = true, version = 1)]
-#if DEBUG
-    [System.Diagnostics.DebuggerVisualizer(typeof(GeoPointVisualizer))]
-#endif
     public struct GeoPoint : ISerializable, IJsonSerialize, IExportStep
     {
         /// <summary>
@@ -1056,6 +1053,10 @@ namespace CADability
             }
             return false;
         }
+        public double Distance(GeoPoint p)
+        {
+            return Geometry.DistPL(p, this);
+        }
         #region ISerializable Members
         /// <summary>
         /// Constructor required by deserialization
@@ -1113,9 +1114,6 @@ namespace CADability
     [Serializable()]
     [DebuggerDisplayAttribute("(x,y)={DebugString}")]
     [JsonVersion(serializeAsStruct = true, version = 1)]
-#if DEBUG
-    [System.Diagnostics.DebuggerVisualizer(typeof(GeoPoint2DVisualizer))]
-#endif
     public struct GeoPoint2D : ISerializable, IJsonSerialize
     {
         /// <summary>

@@ -228,7 +228,7 @@ namespace CADability.GeoObject
             extent = BoundingCube.EmptyBoundingCube;
             if (Constructed != null) Constructed(this);
 #if DEBUG
-            if (hashCode == 7)
+            if (hashCode == 1087)
             {
 
             }
@@ -1332,7 +1332,8 @@ namespace CADability.GeoObject
                         {
                             double len = loops[i][j].curve.Length;
                             ICurve2D crv2d;
-                            if (len < Precision.eps * 100)
+                            //if (len < Precision.eps * 100) // changed to surfacePrecision
+                            if (len < surfacePrecision * 100)
                             {
                                 GeoPoint2D sp = surface.PositionOf(loops[i][j].curve.StartPoint);
                                 GeoPoint2D ep = surface.PositionOf(loops[i][j].curve.EndPoint);
@@ -1990,6 +1991,9 @@ namespace CADability.GeoObject
                             }
                         }
                     }
+#if DEBUG
+                    if (!fc.CheckConsistency()) { }
+#endif
                     fc.ReduceVertices(); // in rare cases the vertices are defined multiple times in STEP. We need to have unique vertices
                     fc.MakeArea();
                     return new Face[] { fc };
@@ -4298,7 +4302,7 @@ namespace CADability.GeoObject
                 }
             }
         }
-        internal IEnumerable<Edge> Edges
+        public IEnumerable<Edge> Edges
         {
             get
             {
@@ -5355,11 +5359,11 @@ namespace CADability.GeoObject
 
         }
 
-        internal void ReplaceSurface(ISurface surface, ModOp2D reparameterize)
+        public void ModifySurface(ISurface surface, ModOp2D reparameterize)
         {
             this.surface = surface.Clone();
             BoundingRect modifiedBounds = Domain.GetModified(reparameterize);
-            foreach (Edge edg in AllEdgesIterated())
+            foreach (Edge edg in Edges)
             {
                 //edg.PrimaryCurve2D = this.surface.GetProjectedCurve(edg.Curve3D, 0.0);
                 //bool done = false;
@@ -5377,7 +5381,7 @@ namespace CADability.GeoObject
                 edg.ModifyCurve2D(this, null, reparameterize);
                 SurfaceHelper.AdjustPeriodic(this.surface, modifiedBounds, edg.Curve2D(this));
             }
-            foreach (Edge edg in AllEdgesIterated())
+            foreach (Edge edg in Edges)
             {
                 edg.Orient(); // ModifyCurve2D unsets the "oriented"-Flag of the edge. Maybe the edge has already been oriented, so ReverseOrientation(this) doesn't help
                 if (edg.Curve3D is InterpolatedDualSurfaceCurve idsc)
@@ -5518,7 +5522,7 @@ namespace CADability.GeoObject
         internal void ModifySurfaceOnly(ModOp m)
         {
 #if DEBUG
-            if (hashCode == 1371)
+            if (hashCode == 406)
             { }
 #endif
             BoundingRect ext = (surface as ISurfaceImpl).usedArea;
@@ -5530,7 +5534,7 @@ namespace CADability.GeoObject
         {
             // usually called from Shell, which modifies the edges separately
 #if DEBUG
-            if (hashCode == 1371)
+            if (hashCode == 406)
             { }
             int tc0 = System.Environment.TickCount;
 #endif
@@ -5568,7 +5572,7 @@ namespace CADability.GeoObject
         public override void Modify(ModOp m)
         {
 #if DEBUG
-            if (hashCode == 1371)
+            if (hashCode == 406)
             { }
 #endif
             using (new Changing(this, "ModifyInverse", m))
@@ -5960,7 +5964,7 @@ namespace CADability.GeoObject
 
             ICurve2D[] usedCurves = new ICurve2D[outline.Length];
 #if DEBUG
-            if (hashCode == 1811)
+            if (hashCode == 1087)
             { }
             if (UserData.ContainsData("StepImport.ItemNumber"))
             {
@@ -6901,7 +6905,7 @@ namespace CADability.GeoObject
             BoundingRect res = BoundingRect.EmptyBoundingRect;
             if (extentPrecision == ExtentPrecision.Raw)
             {   // when we have closed edges, e.g. a non periodic cylinder defined by two circles, then testing vertices only is not a good idea
-                if (trianglePrecision <= projection.Precision * 10)
+                if (trianglePrecision <= projection.Precision * 10 && trianglePrecision > 0.0)
                 {   // if we already have a reasonable triangulation, use it, because it is probably faster
                     lock (lockTriangulationData)
                     {
@@ -8023,7 +8027,7 @@ namespace CADability.GeoObject
             data.RegisterForSerializationDoneCallback(this);
         }
 
-        void IJsonSerializeDone.SerializationDone()
+        void IJsonSerializeDone.SerializationDone(JsonSerialize jsonSerialize)
         {
             if (outline != null)
             {   // in alten files gibt es solche faces
@@ -8038,7 +8042,11 @@ namespace CADability.GeoObject
                         holes[i][j].Owner = this;
                     }
                 }
-                Surface.SetBounds(Area.GetExtent());
+                try
+                {
+                    Surface.SetBounds(Area.GetExtent());
+                }
+                catch { }
             }
         }
         #endregion
@@ -10475,12 +10483,12 @@ namespace CADability.GeoObject
                     if (GetNextEdge(holes[i][j]) != holes[i][next]) return false;
                 }
             }
-            foreach (Edge edg in AllEdgesIterated())
+            foreach (Edge edg in Edges)
             {
                 if (edg.PrimaryFace != this && edg.SecondaryFace != this) return false;
             }
             // sind die 2d Kurven richtig orientiert?
-            foreach (Edge edg in AllEdgesIterated())
+            foreach (Edge edg in Edges)
             {
                 // die Richtung der 2d Kurve ist so, dass auf der rechten Seite das Innere liegt
                 ICurve2D c2d = edg.Curve2D(this);

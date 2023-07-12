@@ -331,9 +331,6 @@ namespace CADability.Curve2D
     /// This class serves as an implementation helper for the ICurve2D interface.
     /// It cannot be instantiated and there are no methods for public use.
     /// </summary>
-#if DEBUG
-    [System.Diagnostics.DebuggerVisualizer(typeof(Curve2DVisualizer))]
-#endif
     public abstract class GeneralCurve2Dold : ICurve2D, I2DIntersectable
     {
         /* Weg von Opencascade!
@@ -1567,9 +1564,6 @@ namespace CADability.Curve2D
     //}
 
     [Serializable()]
-#if DEBUG
-    [System.Diagnostics.DebuggerVisualizer(typeof(Curve2DVisualizer))]
-#endif
     public abstract class GeneralCurve2D : ICurve2D, ISerializable
     {
         // This was called TriangulatedCurve2D in earlier versions
@@ -1955,7 +1949,14 @@ namespace CADability.Curve2D
             {
                 found = FindPerpendicularFoot(p, 0.0, 1.0, StartPoint, EndPoint, StartDirection.ToRight(), EndDirection.ToRight(), out res);
             }
-            if (!found) return double.MinValue;
+            if (!found)
+            {
+                double ds = p | StartPoint;
+                double de = p | EndPoint;
+                if (ds < this.Length * 1e-4) return 0.0;
+                if (de < this.Length * 1e-4) return 1.0;
+                return double.MinValue;
+            }
             return res;
         }
         /// <summary>
@@ -2100,6 +2101,10 @@ namespace CADability.Curve2D
         /// <returns></returns>
         public virtual ICurve2D Parallel(double Dist, bool approxSpline, double precision, double roundAngle)
         {
+            if (approxSpline)
+            {
+                return Approximate(true,precision).Parallel(Dist,false,precision,roundAngle);
+            }
             throw new Exception("The method or operation is not implemented.");
         }
         private static GeoPoint2DWithParameter[] CheckTriangleIntersect(ICurve2D curve1, GeoPoint2D sp1, GeoPoint2D ep1, double spar1, double epar1, GeoVector2D sd1, GeoVector2D ed1,
@@ -2678,7 +2683,7 @@ namespace CADability.Curve2D
             pts2 = curve2.interpol;
             par2 = curve2.interparam;
             dirs2 = curve2.interdir;
-#if DEBUGCURVE
+#if DEBUG
             DebuggerContainer dc = new DebuggerContainer();
             // dc.Add(curve1);
             for (int i = 0; i < 100; ++i)
@@ -3234,7 +3239,8 @@ namespace CADability.Curve2D
         /// <returns></returns>
         public virtual bool ReinterpretParameter(ref double p)
         {
-            throw new Exception("The method or operation is not implemented.");
+            return false;
+            //throw new Exception("The method or operation is not implemented.");
         }
 
         /// <summary>

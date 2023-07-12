@@ -1,7 +1,7 @@
 #region netDxf library licensed under the MIT License
 // 
 //                       netDxf library
-// Copyright (c) 2019-2021 Daniel Carvajal (haplokuon@gmail.com)
+// Copyright (c) 2019-2023 Daniel Carvajal (haplokuon@gmail.com)
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -165,7 +165,7 @@ namespace netDxf.IO
             if (version < DxfVersion.AutoCad2007)
             {
 
-#if !NET45
+#if !NET4X
                 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 #endif
 
@@ -1353,6 +1353,8 @@ namespace netDxf.IO
                     }
                 }
 
+                Debug.Assert(!string.IsNullOrEmpty(handle), "Table entry without handle.");
+
                 this.chunk.Next();
 
                 switch (dxfCode)
@@ -1387,7 +1389,6 @@ namespace netDxf.IO
                         {
                             layer.Handle = handle;
                             this.layers.Add(layer);
-                            //this.doc.Layers.Add(layer, false);
                         }
                         break;
                     case DxfObjectCode.LinetypeTable:
@@ -3262,10 +3263,19 @@ namespace netDxf.IO
                 }
             }
 
-            if (!this.blockRecords.TryGetValue(name, out BlockRecord blockRecord))
+            // Workaround for Blocks without its associated BLOCK_RECORD, this may end up in a loose of information
+            this.blockRecords.TryGetValue(name, out BlockRecord blockRecord);
+            if (blockRecord == null)
             {
-                throw new Exception(string.Format("The block record {0} is not defined.", name));
+                Debug.Assert(false, string.Format("The block record {0} is not defined.", name));
+                blockRecord = new BlockRecord(name);
+                this.doc.NumHandles = blockRecord.AssignHandle(this.doc.NumHandles);
             }
+
+            //if (!this.blockRecords.TryGetValue(name, out BlockRecord blockRecord))
+            //{
+            //    throw new Exception(string.Format("The block record {0} is not defined.", name));
+            //}
 
             Block block;
 
@@ -3936,6 +3946,9 @@ namespace netDxf.IO
                 case DxfObjectCode.Dimension:
                     dxfObject = this.ReadDimension(isBlockEntity);
                     break;
+                case DxfObjectCode.ArcDimension:
+                    dxfObject = this.ReadDimension(isBlockEntity);
+                    break;
                 case DxfObjectCode.Ellipse:
                     dxfObject = this.ReadEllipse();
                     break;
@@ -4022,11 +4035,27 @@ namespace netDxf.IO
                     return null;
             }
 
-            if (dxfObject == null || string.IsNullOrEmpty(handle))
+            //if (dxfObject == null || string.IsNullOrEmpty(handle))
+            //{
+            //    return null;
+            //}
+
+            if (dxfObject == null)
             {
                 return null;
             }
 
+            //if (string.IsNullOrEmpty(handle))
+            //{
+            //    Debug.Assert(false, "Entity without handle.");
+            //    this.doc.NumHandles = dxfObject.AssignHandle(this.doc.NumHandles);
+            //}
+            //else
+            //{
+            //    dxfObject.Handle = handle;
+            //}
+            
+            Debug.Assert(!string.IsNullOrEmpty(handle), "Entity without handle.");
             dxfObject.Handle = handle;
 
             if (dxfObject is EntityObject entity)
@@ -4489,11 +4518,17 @@ namespace netDxf.IO
             xAxis = MathHelper.Transform(xAxis, normal, CoordinateSystem.World, CoordinateSystem.Object);
             double rotation = Vector2.Angle(new Vector2(xAxis.X, xAxis.Y));
 
-            Tolerance entity = Tolerance.ParseStringRepresentation(value);
+            if (!Tolerance.TryParseStringRepresentation(value, out Tolerance entity))
+            {
+                // if there is a problem creating the Tolerance entity from the string data, remove it
+                Debug.Assert(false, "The tolerance string representation is not well formatted");
+                return null;
+            }
+
             entity.Style = style;
             entity.TextHeight = style.TextHeight;
             entity.Position = position;
-            entity.Rotation = rotation*MathHelper.RadToDeg;
+            entity.Rotation = rotation * MathHelper.RadToDeg;
             entity.Normal = normal;
             entity.XData.AddRange(xData);
 
@@ -5463,6 +5498,7 @@ namespace netDxf.IO
         private Dimension ReadDimension(bool isBlockEntity)
         {
             string drawingBlockName = string.Empty;
+            string subclassMarker = string.Empty;
             Block drawingBlock = null;
             Vector3 defPoint = Vector3.Zero;
             Vector3 midtxtPoint = Vector3.Zero;
@@ -5487,7 +5523,7 @@ namespace netDxf.IO
                         userText = this.DecodeEncodedNonAsciiCharacters(this.chunk.ReadString());
                         if (string.IsNullOrEmpty(userText.Trim(' ', '\t')))
                         {
-                            userText = " ";
+                            userText = string.Empty;
                         }
                         this.chunk.Next();
                         break;
@@ -5573,13 +5609,14 @@ namespace netDxf.IO
                         this.chunk.Next();
                         break;
                     case 100:
-                        string marker = this.chunk.ReadString();
-                        if (marker == SubclassMarker.AlignedDimension ||
-                            marker == SubclassMarker.RadialDimension ||
-                            marker == SubclassMarker.DiametricDimension ||
-                            marker == SubclassMarker.Angular3PointDimension ||
-                            marker == SubclassMarker.Angular2LineDimension ||
-                            marker == SubclassMarker.OrdinateDimension)
+                        subclassMarker = this.chunk.ReadString();
+                        if (subclassMarker == SubclassMarker.AlignedDimension ||
+                            subclassMarker == SubclassMarker.RadialDimension ||
+                            subclassMarker == SubclassMarker.DiametricDimension ||
+                            subclassMarker == SubclassMarker.Angular3PointDimension ||
+                            subclassMarker == SubclassMarker.Angular2LineDimension ||
+                            subclassMarker == SubclassMarker.OrdinateDimension ||
+                            subclassMarker == SubclassMarker.ArcDimension)
                         {
                             // we have finished reading the basic dimension info
                             dimInfo = true; 
@@ -5611,28 +5648,31 @@ namespace netDxf.IO
             }
 
             Dimension dim;
-            switch (type)
+            switch (subclassMarker)
             {
-                case DimensionTypeFlags.Aligned:
+                case SubclassMarker.AlignedDimension:
                     dim = this.ReadAlignedDimension(defPoint, normal);
                     break;
-                case DimensionTypeFlags.Linear:
+                case SubclassMarker.LinearDimension:
                     dim = this.ReadLinearDimension(defPoint, normal);
                     break;
-                case DimensionTypeFlags.Radius:
+                case SubclassMarker.RadialDimension:
                     dim = this.ReadRadialDimension(defPoint, normal);
                     break;
-                case DimensionTypeFlags.Diameter:
+                case SubclassMarker.DiametricDimension:
                     dim = this.ReadDiametricDimension(defPoint, normal);
                     break;
-                case DimensionTypeFlags.Angular3Point:
+                case SubclassMarker.Angular3PointDimension:
                     dim = this.ReadAngular3PointDimension(defPoint, normal);
                     break;
-                case DimensionTypeFlags.Angular:
+                case SubclassMarker.Angular2LineDimension:
                     dim = this.ReadAngular2LineDimension(defPoint, normal);
                     break;
-                case DimensionTypeFlags.Ordinate:
+                case SubclassMarker.OrdinateDimension:
                     dim = this.ReadOrdinateDimension(defPoint, axis, normal, dimRot);
+                    break;
+                case SubclassMarker.ArcDimension:
+                    dim = this.ReadArcLengthDimension(defPoint, normal);
                     break;
                 default:
                     throw new ArgumentException(string.Format("The dimension type: {0} is not implemented or unknown.", type));
@@ -6270,11 +6310,7 @@ namespace netDxf.IO
                                         return overrides; // premature end
                                     }
 
-                                    Linetype dimltype = this.doc.GetObjectByHandle((string) data.Value) as Linetype;
-                                    if (dimltype == null)
-                                    {
-                                        dimltype = this.doc.Linetypes[Linetype.DefaultName];
-                                    }
+                                    Linetype dimltype = this.doc.GetObjectByHandle((string) data.Value) as Linetype ?? this.doc.Linetypes[Linetype.DefaultName];
 
                                     overrides.Add(new DimensionStyleOverride(DimensionStyleOverrideType.DimLineLinetype, dimltype));
                                     break;
@@ -6284,11 +6320,7 @@ namespace netDxf.IO
                                         return overrides; // premature end
                                     }
 
-                                    Linetype dimltex1 = this.doc.GetObjectByHandle((string) data.Value) as Linetype;
-                                    if (dimltex1 == null)
-                                    {
-                                        dimltex1 = this.doc.Linetypes[Linetype.DefaultName];
-                                    }
+                                    Linetype dimltex1 = this.doc.GetObjectByHandle((string) data.Value) as Linetype ?? this.doc.Linetypes[Linetype.DefaultName];
 
                                     overrides.Add(new DimensionStyleOverride(DimensionStyleOverrideType.ExtLine1Linetype, dimltex1));
                                     break;
@@ -6298,11 +6330,7 @@ namespace netDxf.IO
                                         return overrides; // premature end
                                     }
 
-                                    Linetype dimltex2 = this.doc.GetObjectByHandle((string) data.Value) as Linetype;
-                                    if (dimltex2 == null)
-                                    {
-                                        dimltex2 = this.doc.Linetypes[Linetype.DefaultName];
-                                    }
+                                    Linetype dimltex2 = this.doc.GetObjectByHandle((string) data.Value) as Linetype ?? this.doc.Linetypes[Linetype.DefaultName];
 
                                     overrides.Add(new DimensionStyleOverride(DimensionStyleOverrideType.ExtLine2Linetype, dimltex2));
                                     break;
@@ -7006,6 +7034,90 @@ namespace netDxf.IO
             return entity;
         }
 
+        private ArcLengthDimension ReadArcLengthDimension(Vector3 defPoint, Vector3 normal)
+        {
+            Vector3 center = Vector3.Zero;
+            Vector3 firstRef = Vector3.Zero;
+            Vector3 secondRef = Vector3.Zero;
+
+            List<XData> xData = new List<XData>();
+
+            while (this.chunk.Code != 0)
+            {
+                switch (this.chunk.Code)
+                {
+                    case 13:
+                        firstRef.X = this.chunk.ReadDouble();
+                        this.chunk.Next();
+                        break;
+                    case 23:
+                        firstRef.Y = this.chunk.ReadDouble();
+                        this.chunk.Next();
+                        break;
+                    case 33:
+                        firstRef.Z = this.chunk.ReadDouble();
+                        this.chunk.Next();
+                        break;
+                    case 14:
+                        secondRef.X = this.chunk.ReadDouble();
+                        this.chunk.Next();
+                        break;
+                    case 24:
+                        secondRef.Y = this.chunk.ReadDouble();
+                        this.chunk.Next();
+                        break;
+                    case 34:
+                        secondRef.Z = this.chunk.ReadDouble();
+                        this.chunk.Next();
+                        break;
+                    case 15:
+                        center.X = this.chunk.ReadDouble();
+                        this.chunk.Next();
+                        break;
+                    case 25:
+                        center.Y = this.chunk.ReadDouble();
+                        this.chunk.Next();
+                        break;
+                    case 35:
+                        center.Z = this.chunk.ReadDouble();
+                        this.chunk.Next();
+                        break;
+                    case 1001:
+                        string appId = this.DecodeEncodedNonAsciiCharacters(this.chunk.ReadString());
+                        XData data = this.ReadXDataRecord(this.GetApplicationRegistry(appId));
+                        xData.Add(data);
+                        break;
+                    default:
+                        Debug.Assert(!(this.chunk.Code >= 1000 && this.chunk.Code <= 1071), "The extended data of an entity must start with the application registry code.");
+                        this.chunk.Next();
+                        break;
+                }
+            }
+
+            List<Vector3> ocsPoints = MathHelper.Transform(
+                new[] { center, firstRef, secondRef, defPoint },
+                normal, CoordinateSystem.World, CoordinateSystem.Object);
+
+            Vector2 arcCenter = new Vector2(ocsPoints[0].X, ocsPoints[0].Y);
+            Vector2 arcStart = new Vector2(ocsPoints[1].X, ocsPoints[1].Y);
+            Vector2 arcEnd = new Vector2(ocsPoints[2].X, ocsPoints[2].Y);
+
+            ArcLengthDimension entity = new ArcLengthDimension
+            {
+                CenterPoint = arcCenter,
+                Radius = Vector2.Distance(arcCenter, arcStart),
+                StartAngle = Vector2.Angle(arcStart - arcCenter) * MathHelper.RadToDeg,
+                EndAngle = Vector2.Angle(arcEnd - arcCenter) * MathHelper.RadToDeg,
+                Elevation = ocsPoints[3].Z
+            };
+
+            entity.SetDimensionLinePosition(new Vector2(ocsPoints[3].X, ocsPoints[3].Y));
+
+            entity.XData.AddRange(xData);
+
+            return entity;
+        }
+
         private Ellipse ReadEllipse()
         {
             Vector3 center = Vector3.Zero;
@@ -7089,13 +7201,14 @@ namespace netDxf.IO
 
             Ellipse ellipse = new Ellipse(center, majorAxis, minorAxis)
             {
-                Rotation = rotation*MathHelper.RadToDeg,
+                Rotation = rotation * MathHelper.RadToDeg,
                 Normal = normal
             };
 
             ellipse.XData.AddRange(xData);
 
             SetEllipseParameters(ellipse, param);
+
             return ellipse;
         }
 
@@ -7108,8 +7221,8 @@ namespace netDxf.IO
             }
             else
             {
-                double a = ellipse.MajorAxis*0.5;
-                double b = ellipse.MinorAxis*0.5;
+                double a = ellipse.MajorAxis * 0.5;
+                double b = ellipse.MinorAxis * 0.5;
 
                 Vector2 startPoint = new Vector2(a * Math.Cos(param[0]), b * Math.Sin(param[0]));
                 Vector2 endPoint = new Vector2(a * Math.Cos(param[1]), b * Math.Sin(param[1]));
@@ -8572,6 +8685,18 @@ namespace netDxf.IO
                     });
                 }
             }
+            
+            if (polyfaceVertexes.Count < 3)
+            {
+                Debug.Assert(false, "The polyface must contain at least three vertexes.");
+                return null;
+            }
+
+            if (polyfaceFaces.Count == 0)
+            {
+                Debug.Assert(false, "The polyface must contain at least one face.");
+                return null;
+            }
 
             PolyfaceMesh pMesh = new PolyfaceMesh(polyfaceVertexes, polyfaceFaces)
             {
@@ -8589,14 +8714,17 @@ namespace netDxf.IO
             // the number of vertexes along the M direction must be between 2 and 256
             if(polyline.M < 2 || polyline.M > 256)
             {
+                Debug.Assert(false, "The number of vertexes along the M direction must be between 2 and 256.");
                 return null;
             }
 
             // the number of vertexes along the N direction must be between 2 and 256
             if(polyline.N < 2 || polyline.N > 256)
             {
+                Debug.Assert(false, "The number of vertexes along the M direction must be between 2 and 256.");
                 return null;
             }
+
 
             Vector3[] polygonMeshVertexes = new Vector3[polyline.M * polyline.N];
 
@@ -8618,6 +8746,13 @@ namespace netDxf.IO
                         i += 1;
                     }
                 }
+
+                if (polygonMeshVertexes.Length != polyline.M * polyline.N)
+                {
+                    Debug.Assert(false, "The number of vertexes must be equal to MxN.");
+                    return null;
+                }
+
                 pMesh = new PolygonMesh(polyline.M, polyline.N, polygonMeshVertexes)
                 {
                     SmoothType = polyline.SmoothType,
@@ -8797,18 +8932,18 @@ namespace netDxf.IO
 
             if (flags.HasFlag(PolylineTypeFlags.Polyline3D))
             {
-                return ReadPolyline3D(polyline);
+                return this.ReadPolyline3D(polyline);
             }
             if (flags.HasFlag(PolylineTypeFlags.PolyfaceMesh))
             {
-                return ReadPolyfaceMesh(polyline);
+                return this.ReadPolyfaceMesh(polyline);
             }
             if (flags.HasFlag(PolylineTypeFlags.PolygonMesh))
             {
-                return ReadPolygonMesh(polyline);
+                return this.ReadPolygonMesh(polyline);
             }
                
-            return ReadPolyline2D(polyline); 
+            return this.ReadPolyline2D(polyline); 
         }
 
         private Vertex ReadVertex()
@@ -11356,7 +11491,11 @@ namespace netDxf.IO
                                     {
                                         properties.LinetypeName = Linetype.DefaultName;
                                     }
-                                    layerState.Properties.Add(properties.Name, properties);
+
+                                    if (!layerState.Properties.ContainsKey(properties.Name))
+                                    {
+                                        layerState.Properties.Add(properties.Name, properties);
+                                    }
                                 }
                                 else
                                 {
@@ -11374,9 +11513,13 @@ namespace netDxf.IO
                                     {
                                         properties.LinetypeName = Linetype.DefaultName;
                                     }
-                                    layerState.Properties.Add(properties.Name, properties);
+                                    
+                                    if (!layerState.Properties.ContainsKey(properties.Name))
+                                    {
+                                        layerState.Properties.Add(properties.Name, properties);
+                                    }
                                 }
-
+                                enumerator.MoveNext();
                                 break;
                             default:
                                 enumerator.MoveNext();

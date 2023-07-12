@@ -76,5 +76,65 @@ namespace CADability.Tests
                 Assert.That.BitmapsAreEqual(expected, actual);
             }
         }
+
+        [TestMethod]
+        public void export_dxf_issue_129_succeds()
+        {
+            // in master@82ffb34 exporting a text object to txt does not set the location,
+            // so all texts are all not in the correct location / orientation
+
+            // create a simple project and add a text object
+            var project = Project.CreateSimpleProject();
+            var model = project.GetActiveModel();
+            var expected = GeoObject.Text.Construct();
+            expected.Font = "Arial";
+            expected.TextString = "Test";
+            expected.Location = new GeoPoint(50, 50);
+            model.Add(expected);
+
+            // export the project and load it again
+            var fileName = this.TestContext.TestName + ".dxf";
+            project.Export(fileName, "dxf");
+            project = Project.ReadFromFile(fileName, "dxf");
+            model = project.GetActiveModel();
+            var actual = model.AllObjects.Cast<GeoObject.Text>().Single();
+
+            // verify some values
+            Assert.AreEqual(expected.Location, actual.Location);
+            Assert.AreEqual(expected.TextString, actual.TextString);
+            Assert.AreEqual(expected.Font, actual.Font);
+
+        }
+
+        [TestMethod]
+        [DeploymentItem(@"Files/Dxf/issue143.dxf", nameof(import_dxf_issue143_succeds))]
+        [DeploymentItem(@"Files/Dxf/issue143.png", nameof(import_dxf_issue143_succeds))]
+        public void import_dxf_issue143_succeds()
+        {
+            var file = Path.Combine(this.TestContext.DeploymentDirectory, this.TestContext.TestName, "issue143.dxf");
+            Assert.IsTrue(File.Exists(file));
+            var bmpFile = Path.Combine(this.TestContext.DeploymentDirectory, this.TestContext.TestName, "issue143.png");
+            // uncomment after file exists
+            Assert.IsTrue(File.Exists(bmpFile));
+
+            var project = Project.ReadFromFile(file, "dxf");
+            Assert.IsNotNull(project);
+            var model = project.GetActiveModel();
+            Assert.IsNotNull(model);
+            Assert.AreEqual(3, model.AllObjects.Count);
+
+            var ellipse1 = Assert.That.IsInstanceOfType<GeoObject.Ellipse>(model.AllObjects[1]);
+            Assert.IsTrue(ellipse1.HasValidData());
+            var ellipse2 = Assert.That.IsInstanceOfType<GeoObject.Ellipse>(model.AllObjects[2]);
+            Assert.IsTrue(ellipse2.HasValidData());
+
+            using (var expected = (Bitmap)Image.FromFile(bmpFile))
+            using (var actual = PaintToOpenGL.PaintToBitmap(model.AllObjects, GeoVector.NullVector, 200, 200))
+            {
+                // Uncomment once to generate bitmap for later comparison
+                //actual.Save(bmpFile);
+                Assert.That.BitmapsAreEqual(expected, actual);
+            }
+        }
     }
 }

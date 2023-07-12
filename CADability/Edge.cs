@@ -821,7 +821,7 @@ namespace CADability
             edgeKind = EdgeKind.unknown;
             hashCode = hashCodeCounter++; // 
 #if DEBUG
-            if (hashCode == 40496 || hashCode == 40494)
+            if (hashCode == 1214)
             {
             }
 #endif
@@ -2229,8 +2229,10 @@ namespace CADability
         #region IJsonSerialize Members
         public void GetObjectData(IJsonWriteData data)
         {
+            owner = primaryFace;
             if (curve3d != null)
             {
+                if (curve3d is IGeoObject go) go.Owner = this;
                 data.AddProperty("Curve3d", curve3d);
             }
             if (primaryFace != null) data.AddProperty("PrimaryFace", primaryFace);
@@ -2258,7 +2260,7 @@ namespace CADability
             v2 = data.GetPropertyOrDefault<Vertex>("Vertex2");
             data.RegisterForSerializationDoneCallback(this);
         }
-        void IJsonSerializeDone.SerializationDone()
+        void IJsonSerializeDone.SerializationDone(JsonSerialize jsonSerialize)
         {
             if (curve3d != null) (curve3d as IGeoObject).Owner = this;
         }
