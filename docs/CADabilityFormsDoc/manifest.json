@@ -1,6 +1,6 @@
 {
   "homepages": [],
-  "source_base_path": "C:/Users/ghofm/source/repos/CADability/CADability.Forms",
+  "source_base_path": "C:/Users/Giovanni/Desktop/modelliGEN/CADability/CADability.Forms",
   "xrefmap": "xrefmap.yml",
   "files": [
     {
@@ -9,10 +9,10 @@
       "output": {
         ".html": {
           "relative_path": "api/index.html",
-          "hash": "ZcRFJgNhvhM6kAH28Vkb5TxxGPe7FlftmernEpHWKBw="
+          "hash": "blaRb3vZAT0Wzqn9Wr9cYL5GahhJKasWh1Sv39AZC3A="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -21,10 +21,10 @@
       "output": {
         ".html": {
           "relative_path": "articles/intro.html",
-          "hash": "yF4cM99miGSsrT64oV0kgkl56YkQylthgw5Gl1aJqzo="
+          "hash": "xZZkYKTdBfVG9YxifX4EjgzqivG6BsFQCHphaKWSM/Q="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -45,10 +45,10 @@
       "output": {
         ".html": {
           "relative_path": "index.html",
-          "hash": "GGOovSab6ZFxRkwbTiKX/AxcXz9WU1qSZOSIhjRqq74="
+          "hash": "llE0MG1ACMT66OYGCJePrrs7HJ7NaEemupOFvylQ+hw="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -57,10 +57,10 @@
       "output": {
         ".html": {
           "relative_path": "api/CADability.Forms.BitmapTable.html",
-          "hash": "2UsXH9KH29dQTWqLMcp6DLxyMLtr4g6yB++uZN/Y1ns="
+          "hash": "r4+4zWxjW8r6ra4sgxKJ/Tb2A6MU9mGArjXSj2Dt4Mw="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -69,10 +69,10 @@
       "output": {
         ".html": {
           "relative_path": "api/CADability.Forms.ButtonImages.html",
-          "hash": "vJLp/cuzs/UuLqdr32ndEOe1OI16RY+FEur+FBWh+QM="
+          "hash": "7vyIuJmJSmW32bE3L37gJe7VP+We022FeCbNbJ/A95A="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -81,10 +81,10 @@
       "output": {
         ".html": {
           "relative_path": "api/CADability.Forms.CadCanvas.html",
-          "hash": "tRaGGILVwSewQ6PO87dqUl9QvgTTCHpH8mKLfOoMcoA="
+          "hash": "APNLhFYire143qK6MFHQrz/kxwiU7d4PO9bX6TkIFuY="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -93,10 +93,10 @@
       "output": {
         ".html": {
           "relative_path": "api/CADability.Forms.CadControl.html",
-          "hash": "rlwggD3jVjWKftSnoXiOgCnGH4qY965hR+m8FOrUCQc="
+          "hash": "mB4Bkj9H0dxCPX6egh8hn81A4MuZrUe4HmFPlQWLfr8="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -105,10 +105,10 @@
       "output": {
         ".html": {
           "relative_path": "api/CADability.Forms.CadForm.html",
-          "hash": "i3e9fxy2toQgu7js2ZDekSGeGiTwf3sseLP9IrXO4bg="
+          "hash": "cvy2nEjk/NG6WdrJVCcZ2OORz6UFSrkeMT4cd2bZ5tY="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -117,22 +117,10 @@
       "output": {
         ".html": {
           "relative_path": "api/CADability.Forms.CadFrame.html",
-          "hash": "oYBN0NjZIx6/lWzIx/7RAwvZzv2G4uYBiPjUSgk9F+8="
+          "hash": "hVOK4hUZHEvXqzbxteh7vSkauQIDu029isTkkLiIe60="
         }
       },
-      "is_incremental": true,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "obj/api/CADability.Forms.ImportSVG.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/CADability.Forms.ImportSVG.html",
-          "hash": "pdUH25ScGNyh2IleHbLYm+eyNit3lH9nf6wQsxS1hpM="
-        }
-      },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -141,10 +129,10 @@
       "output": {
         ".html": {
           "relative_path": "api/CADability.Forms.PaintToBitmap.html",
-          "hash": "R0Ogjr/Wvdoo7JAtpvRnr/Cnx/obUiKG1BWONPDB/hg="
+          "hash": "wXOSwoeldBm/ECGT5S9HHY2vgwASa6QQqrR83yAaQ84="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -153,10 +141,10 @@
       "output": {
         ".html": {
           "relative_path": "api/CADability.Forms.PaintToGDI.html",
-          "hash": "N62bB4CSAJGN3Dz6LjR/xq4sSYqSoZtdFogS3jz9HwQ="
+          "hash": "aENxKr2m0BAUyZIIXIdUWPNiVzjEZHBkGGNF7VB4NU4="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -165,10 +153,10 @@
       "output": {
         ".html": {
           "relative_path": "api/CADability.Forms.PaintToOpenGL.html",
-          "hash": "W2Q0iF8/BP3umyPDTkZwEHBp1SvtyLOsGmBn+RQXgf0="
+          "hash": "yM9Egbh2E3hUGkcdKSNeQDSv9pJRm9CW5DNS0ZvnNKg="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -177,10 +165,10 @@
       "output": {
         ".html": {
           "relative_path": "api/CADability.Forms.PaintToOpenGLException.html",
-          "hash": "Z8XBC5ijjraY9PcpjYywr2bqgCg2XFwJwbF9q2a06Ag="
+          "hash": "bNeACElCZX/ZN7NEMGHwWd+92+g9CwoyG1kh6OgDE84="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -189,10 +177,10 @@
       "output": {
         ".html": {
           "relative_path": "api/CADability.Forms.ProgressForm.html",
-          "hash": "1E6qeIWwMeNyJiJCQ8LwgekScl9cV9rDchIXrjlzpkY="
+          "hash": "6WZoXmVcefogJCBH7JLCiY3fJFI4T3B0r8QCmNDTai8="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -201,10 +189,10 @@
       "output": {
         ".html": {
           "relative_path": "api/CADability.Forms.PropertiesExplorer.html",
-          "hash": "DhChTAwuCN4LHxeAB3uveAav5RD/vp+ZR6wrrVYwWSw="
+          "hash": "HzMcpmR8R3e2tr/B6lkBjsoecDrTqqnUlOHhmaz3n9U="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -213,19 +201,7 @@
       "output": {
         ".html": {
           "relative_path": "api/CADability.Forms.PropertyPage.html",
-          "hash": "vwuFJn5mdQaxGeBmsZeDOHAQCunoPNQ55ivXhsPFi3o="
-        }
-      },
-      "is_incremental": true,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "obj/api/CADability.Forms.TestJSonSerialisation.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/CADability.Forms.TestJSonSerialisation.html",
-          "hash": "xszFxltuJPzy6e0KTANdRe5ZINvcWNLx8yPnXiuQOBI="
+          "hash": "7YrqSxECl39M472YsT5htGmandK9ZIkAPNL0Sid+7MA="
         }
       },
       "is_incremental": false,
@@ -237,7 +213,7 @@
       "output": {
         ".html": {
           "relative_path": "api/CADability.Forms.html",
-          "hash": "jwT2n0KPwggtAa6l8ITMj8fFm9JBgUyzV7F66vCOPCA="
+          "hash": "7ck/G0V9wG5AzZNMGEOGrBiGHcIlDdssR8j+yAiovnE="
         }
       },
       "is_incremental": false,
@@ -249,7 +225,7 @@
       "output": {
         ".html": {
           "relative_path": "api/toc.html",
-          "hash": "A9fpL1EpBLIzuQwbN8vKWi99Tj4tWvZF5A+n5t1GGyM="
+          "hash": "0MzWu+EZ0GeJGQRAd6CT8vc4LLbMFMrMKZoV3DSdCVw="
         }
       },
       "is_incremental": false,
@@ -271,23 +247,25 @@
   "incremental_info": [
     {
       "status": {
-        "can_incremental": true,
+        "can_incremental": false,
+        "details": "Cannot build incrementally because last build info is missing.",
         "incrementalPhase": "build",
         "total_file_count": 0,
-        "skipped_file_count": 0
+        "skipped_file_count": 0,
+        "full_build_reason_code": "NoAvailableBuildCache"
       },
       "processors": {
         "ConceptualDocumentProcessor": {
-          "can_incremental": true,
+          "can_incremental": false,
           "incrementalPhase": "build",
           "total_file_count": 3,
-          "skipped_file_count": 3
+          "skipped_file_count": 0
         },
         "ManagedReferenceDocumentProcessor": {
-          "can_incremental": true,
+          "can_incremental": false,
           "incrementalPhase": "build",
-          "total_file_count": 16,
-          "skipped_file_count": 15
+          "total_file_count": 14,
+          "skipped_file_count": 0
         },
         "TocDocumentProcessor": {
           "can_incremental": false,
@@ -300,8 +278,8 @@
     },
     {
       "status": {
-        "can_incremental": true,
-        "details": "Can support incremental post processing.",
+        "can_incremental": false,
+        "details": "Cannot support incremental post processing, the reason is: last post processor info is null.",
         "incrementalPhase": "postProcessing",
         "total_file_count": 0,
         "skipped_file_count": 0
