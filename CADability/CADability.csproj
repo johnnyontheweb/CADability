@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <BuildDocFx Condition=" '$(Configuration)'!='RelWithDoc' ">false</BuildDocFx>
     <Configurations>Debug;Release;RelWithDoc;WebDebug</Configurations>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>CADabilityKey.snk</AssemblyOriginatorKeyFile>
     <AssemblyName>CADability</AssemblyName>
     <Platforms>AnyCPU;x64</Platforms>
@@ -129,10 +129,15 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="MathNet.Numerics.Signed" Version="5.0.0" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />
     <PackageReference Include="VSSDK.DebuggerVisualizers" Version="12.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="MathNet.Numerics">
+      <HintPath>..\LIBS\MathNet.Numerics.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
