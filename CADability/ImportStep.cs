@@ -410,7 +410,8 @@ VERTEX_POINT: C:\Zeichnungen\STEP\Ligna - Staab - Halle 1.stp (85207)
         private Dictionary<int, string> importProblems;
         private List<Item> notImportedFaces;
         private Dictionary<string, ColorDef> definedColors;
-        private Dictionary<string, IGeoObject> namedGeoObjects = new Dictionary<string, IGeoObject>();
+        private System.Collections.Concurrent.ConcurrentDictionary<string, IGeoObject> namedGeoObjects = new System.Collections.Concurrent.ConcurrentDictionary<string, IGeoObject>();
+        private System.Collections.Concurrent.ConcurrentDictionary<NurbsSurface, ModOp2D> nurbsSurfacesWithModifiedKnots; // when in construction the nurbs surface get a different 2d space, the modification is saved here
         class Tokenizer : IDisposable
         {
             StreamReader sr;
@@ -1231,6 +1232,7 @@ VERTEX_POINT: C:\Zeichnungen\STEP\Ligna - Staab - Halle 1.stp (85207)
             definitions = new List<Item>();
             importProblems = new Dictionary<int, string>();
             notImportedFaces = new List<Item>();
+            nurbsSurfacesWithModifiedKnots = new System.Collections.Concurrent.ConcurrentDictionary<NurbsSurface, ModOp2D>();
 #if DEBUG
             allNames = new SortedDictionary<string, int>();
             entityPattern = new Dictionary<string, HashSet<string>>();
@@ -1694,6 +1696,18 @@ VERTEX_POINT: C:\Zeichnungen\STEP\Ligna - Staab - Halle 1.stp (85207)
                             if (prodlist.Count > 0) res = prodlist;
                         }
                     }
+                    if (res == null || res.Count == 0)
+                    {
+                        if (res == null) res = new GeoObjectList();
+                        for (int i = 0; i < roots[Item.ItemType.mechanicalDesignGeometricPresentationRepresentation].Count; i++)
+                        {
+                            Item item = definitions[roots[Item.ItemType.mechanicalDesignGeometricPresentationRepresentation][i]];
+                            if (item.val is GeoObjectList l)
+                            {
+                                res.AddRange(l);
+                            }
+                        }
+                    }
                 }
                 catch (SyntaxError e)
                 {
@@ -1892,7 +1906,7 @@ VERTEX_POINT: C:\Zeichnungen\STEP\Ligna - Staab - Halle 1.stp (85207)
                                     if (o is Shell shl) shl.Name = name; // && string.IsNullOrWhiteSpace(shl.Name)
                                 }
                             }
-                           if (!found && namedGeoObjects.TryGetValue(name, out IGeoObject go)) res.Add(go);
+                            if (!found && namedGeoObjects.TryGetValue(name, out IGeoObject go)) res.Add(go);
                         }
                     }
                     if (!hasRelationship && product.parameter.TryGetValue("_association", out Item assoc))
@@ -2366,13 +2380,16 @@ VERTEX_POINT: C:\Zeichnungen\STEP\Ligna - Staab - Halle 1.stp (85207)
                             GeoObjectList val = new GeoObjectList();
                             for (int i = 0; i < elements.lval.Count; i++)
                             {
-                                object o = CreateEntity(elements.lval[i]);
+                                Item subItem = elements.lval[i];
+                                object o = CreateEntity(subItem);
                                 if (o is GeoPoint)
                                 {
                                     GeoObject.Point pnt = GeoObject.Point.Construct();
                                     pnt.Location = (GeoPoint)o;
                                     pnt.Symbol = PointSymbol.Cross;
+                                    pnt.Name = subItem.parameter["name"].sval;
                                     val.Add(pnt);
+                                    subItem.val = pnt; //For this CartesianPoint a Cadability Point is generated. I set it to the item instead of GeoPoint to make it work layer assignment.
                                 }
                                 else if (o is IGeoObject) val.Add(o as IGeoObject);
                                 else if (o is GeoObjectList) val.AddRange(o as GeoObjectList);
@@ -2568,12 +2585,29 @@ VERTEX_POINT: C:\Zeichnungen\STEP\Ligna - Staab - Halle 1.stp (85207)
                             object shell = CreateEntity(item.parameter["outer"]);
                             List<Item> voids = item.parameter["voids"].val as List<Item>;
                             if (shell is GeoObjectList || shell is IGeoObject) item.val = shell;
+                            else
+                            {
+                                for (int i = 0; i < voids.Count; i++)
+                                {
+                                    shell = CreateEntity(voids[i]);
+                                    if (shell is GeoObjectList || shell is IGeoObject)
+                                    {
+                                        item.val = shell;
+                                        break;
+                                    }
+                                }
+                            }
                         }
                         break;
                     case Item.ItemType.orientedClosedShell:
                     case Item.ItemType.closedShell: // name, faces
                         {
                             List<Item> lst = item.SubList(1);
+                            if (lst == null && item.parameter.ContainsKey("closed_shell_element"))
+                            {
+                                item.val = CreateEntity(item.parameter["closed_shell_element"]);
+                                break;
+                            }
                             List<Face> faces = new List<Face>();
                             if (Settings.GlobalSettings.GetBoolValue("StepImport.Parallel", true))
                             {
@@ -4204,6 +4238,11 @@ VERTEX_POINT: C:\Zeichnungen\STEP\Ligna - Staab - Halle 1.stp (85207)
                                         }
                                     }
                                 }
+                                if (srf is NurbsSurface nurbsSurface && nurbsSurfacesWithModifiedKnots.TryGetValue(nurbsSurface, out ModOp2D modify2DCurve))
+                                {
+                                    // this nurbs surface doesn't have the original 2d space. Move the 2d curve to the modified 2d space here.
+                                    c2d = c2d.GetModified(modify2DCurve);
+                                }
                                 if (item.val != null) item.val = srf.Make3dCurve(c2d);
                             }
                             else if (o is ICurve c3d)
@@ -4319,9 +4358,9 @@ VERTEX_POINT: C:\Zeichnungen\STEP\Ligna - Staab - Halle 1.stp (85207)
                     case Item.ItemType.colourRgb:
                         {
                             string name = item.parameter["name"].sval;
-                            int red = (int)(item.parameter["red"].fval * 255);
-                            int green = (int)(item.parameter["green"].fval * 255);
-                            int blue = (int)(item.parameter["blue"].fval * 255);
+                            int red = (int)Math.Round(item.parameter["red"].fval * 255);
+                            int green = (int)Math.Round(item.parameter["green"].fval * 255);
+                            int blue = (int)Math.Round(item.parameter["blue"].fval * 255);
                             if (string.IsNullOrWhiteSpace(name)) name = "rgb:" + red.ToString() + "_" + green.ToString() + "_" + blue.ToString();
                             item.val = new ColorDef(name, Color.FromArgb(red, green, blue));
                             AvoidDuplicateColorNames(item.val as ColorDef);
@@ -4381,8 +4420,8 @@ VERTEX_POINT: C:\Zeichnungen\STEP\Ligna - Staab - Halle 1.stp (85207)
                                             endParameter = context.toRadian * endParameter;
                                         }
                                     }
-                                    if (startParameter != endParameter) basisCurve.Trim(basisCurve.ParameterToPosition(startParameter), basisCurve.ParameterToPosition(endParameter));
                                     if (!sense) basisCurve.Reverse();
+                                    if (startParameter != endParameter) basisCurve.Trim(basisCurve.ParameterToPosition(startParameter), basisCurve.ParameterToPosition(endParameter));
                                     item.val = basisCurve;
                                 }
                                 else if (startPoint.IsValid && endPoint.IsValid)
@@ -4784,10 +4823,18 @@ VERTEX_POINT: C:\Zeichnungen\STEP\Ligna - Staab - Halle 1.stp (85207)
                                 context.factor = (double)(vc.val as List<Item>)[0].val; // why * 1000 ? definitely wrong for 83855_elp11b.stp
                                 if (it.parameter.TryGetValue("name", out Item name))
                                 {
-                                    if (name.type == Item.ItemType.stringval && name.sval == "METRE") context.factor *= 1000; // added because of "PROBLEM ELE NULLPUNKT.stp"
+                                    //REVIEW: Is *= 1000 really right? Shouldn't it be = 1000?
+                                    if (name.type == Item.ItemType.stringval && name.sval == "METRE") 
+                                        context.factor *= 1000; // added because of "PROBLEM ELE NULLPUNKT.stp"
                                 }
                             }
                         }
+                    }
+                    else if (it.parameter.TryGetValue("name", out Item name))
+                    {
+                        //TODO: Add other units
+                        if (name.type == Item.ItemType.keyword && name.sval == "METRE") 
+                            context.factor = 1000; // added because of "issue153.stp"
                     }
                 }
             }
@@ -4903,6 +4950,7 @@ VERTEX_POINT: C:\Zeichnungen\STEP\Ligna - Staab - Halle 1.stp (85207)
             // some NURBS surfaces come with extreme small uKnots or vKnots span. For better numerical behavior we normalize it here
             // this doesn't change the surface but only the 2d parameter space of the surface
             // an other case were we need to modify the knots span is with periodic surfaces that do not start with 0 as the first knot.
+            ModOp2D knotModification = ModOp2D.Identity;
             if (uKnots[uKnots.Length - 1] - uKnots[0] < 0.5 || (uClosed && uKnots[0] != 0.0))
             {
                 double f = 1.0 / (uKnots[uKnots.Length - 1] - uKnots[0]);
@@ -4911,6 +4959,8 @@ VERTEX_POINT: C:\Zeichnungen\STEP\Ligna - Staab - Halle 1.stp (85207)
                 {
                     uKnots[i] = (uKnots[i] - u0) * f;
                 }
+                knotModification[0, 0] = f;
+                knotModification[0, 2] = -u0;
             }
             if (vKnots[vKnots.Length - 1] - vKnots[0] < 0.5 || (vClosed && vKnots[0] != 0.0))
             {
@@ -4920,8 +4970,14 @@ VERTEX_POINT: C:\Zeichnungen\STEP\Ligna - Staab - Halle 1.stp (85207)
                 {
                     vKnots[i] = (vKnots[i] - v0) * f;
                 }
+                knotModification[1, 1] = f;
+                knotModification[1, 2] = -v0;
             }
             NurbsSurface res = new NurbsSurface(poles, weights, uKnots, vKnots, uMults, vMults, uDegree, vDegree, false, false);
+            if (!knotModification.IsIdentity)
+            {
+                nurbsSurfacesWithModifiedKnots[res] = knotModification; // remember the modification for later use
+            }
             // we should not make canonical surfaces here, because a nurbs surface in a "GEOMETRIC_SET" used in a "GEOMETRICALLY_BOUNDED_SURFACE_SHAPE_REPRESENTATION"
             // uses nurbs surfaces as faces with natural bounds
             switch (form)

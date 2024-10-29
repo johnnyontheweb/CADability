@@ -2117,6 +2117,7 @@ namespace CADability.GeoObject
                             besti = i - intv;
                         }
                     }
+
                     Set<Face> sameRatio = new Set<Face>();
                     for (int i = besti; i < besti + intv; i++)
                     {
@@ -5465,8 +5466,9 @@ namespace CADability.GeoObject
                         ModOp2D firstToSecond;
                         if (edge.SecondaryFace != null && edge.PrimaryFace.Surface!=null && edge.SecondaryFace.Surface != null &&
                             edge.SecondaryFace.Surface.SameGeometry(edge.SecondaryFace.GetUVBounds(), edge.PrimaryFace.Surface, edge.PrimaryFace.GetUVBounds(), precision, out firstToSecond) &&
-                            edge.PrimaryFace != edge.SecondaryFace && firstToSecond.IsIsogonal && firstToSecond.Determinant > 0) // firstToSecond.IsIsogonal: non periodic surfaces or spheres with different axis are not implemented yet
+                            edge.PrimaryFace != edge.SecondaryFace && firstToSecond.Determinant > 0) // firstToSecond.IsIsogonal: non periodic surfaces or spheres with different axis are not implemented yet
                         {
+                            if (edge.PrimaryFace.Surface is CylindricalSurfaceNP || edge.PrimaryFace.Surface is SphericalSurfaceNP || edge.PrimaryFace.Surface is ConicalSurfaceNP) continue;
 #if DEBUG
                             if (edge.GetHashCode() == 1227) { }
                             foreach (Edge dbgedg in edge.PrimaryFace.Edges)
@@ -5777,7 +5779,7 @@ namespace CADability.GeoObject
         internal static Shell MakeShell(Face[] faces, bool tryToConnectOpenEdges = false)
         {
             Shell res = Shell.Construct();
-            res.colorDef = faces[0].ColorDef;
+            if (faces.Length > 0) res.colorDef = faces[0].ColorDef;
             res.SetFaces(faces);
             if (tryToConnectOpenEdges)
             {
@@ -6461,6 +6463,7 @@ namespace CADability.GeoObject
             Set<Face> connected = new Set<Face>();
             Set<Edge> toCheck = new Set<Edge>();
             Face startWith = allFaces.GetAndRemoveAny();
+            connected.Add(startWith);
             toCheck.AddMany(startWith.AllEdges);
             while (!toCheck.IsEmpty())
             {

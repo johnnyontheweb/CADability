@@ -369,3 +369,6 @@ CADability.Forms/log.txt
 /docs/CADabilityFormsDoc/index.html
 /docs/CADabilityFormsDoc/styles/docfx.vendor.css
 /docs/CADabilityFormsDoc/styles/lunr.js
+docs/CADabilityFormsDoc/xrefmap.yml
+CADability.Forms/log.txt
+docs/CADabilityFormsDoc/manifest.json
