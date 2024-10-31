@@ -2425,7 +2425,7 @@ namespace CADability
 
         void IPaintTo3D.FilledPolyline(GeoPoint[] points)
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.Points(GeoPoint[] points, float size, PointSymbol pointSymbol)
@@ -2465,12 +2465,12 @@ namespace CADability
 
         void IPaintTo3D.PrepareText(string fontName, string textString, System.Drawing.FontStyle fontStyle)
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.PrepareIcon(System.Drawing.Bitmap icon)
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
         void IPaintTo3D.PreparePointSymbol(PointSymbol pointSymbol)
         {
@@ -2557,37 +2557,37 @@ namespace CADability
 
         void IPaintTo3D.List(IPaintTo3DList paintThisList)
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.SelectedList(IPaintTo3DList paintThisList, int wobbleRadius)
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.Nurbs(GeoPoint[] poles, double[] weights, double[] knots, int degree)
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.Line2D(int sx, int sy, int ex, int ey)
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.Line2D(System.Drawing.PointF p1, System.Drawing.PointF p2)
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.FillRect2D(System.Drawing.PointF p1, System.Drawing.PointF p2)
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.Point2D(int x, int y)
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.DisplayIcon(GeoPoint p, System.Drawing.Bitmap icon)
@@ -2626,22 +2626,22 @@ namespace CADability
         }
         void IPaintTo3D.SetProjection(Projection projection, BoundingCube boundingCube)
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.Clear(System.Drawing.Color background)
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.Resize(int width, int height)
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.OpenList(string name)
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         IPaintTo3DList IPaintTo3D.CloseList()
@@ -2769,22 +2769,22 @@ namespace CADability
 
         void IPaintTo3D.FreeUnusedLists()
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.UseZBuffer(bool use)
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.Blending(bool on)
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.FinishPaint()
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.PaintFaces(PaintTo3D.PaintMode paintMode)
@@ -2799,17 +2799,17 @@ namespace CADability
 
         void IPaintTo3D.Dispose()
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.PushState()
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.PopState()
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
         void IPaintTo3D.PushMultModOp(ModOp insertion)
@@ -2825,12 +2825,12 @@ namespace CADability
 
         void IPaintTo3D.SetClip(System.Drawing.Rectangle clipRectangle)
         {
-            throw new NotImplementedException("The method or operation is not implemented.");
+            //throw new NotImplementedException("The method or operation is not implemented.");
         }
 
-#endregion
+        #endregion
 
-#region IPaintTo3D Member
+        #region IPaintTo3D Member
 
 
         public bool DontRecalcTriangulation

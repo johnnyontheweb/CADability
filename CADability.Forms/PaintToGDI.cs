@@ -521,6 +521,7 @@ namespace CADability.Forms
 
         void IPaintTo3D.PrepareIcon(System.Drawing.Bitmap icon)
         {
+
         }
 
         void IPaintTo3D.Text(GeoVector lineDirection, GeoVector glyphDirection, GeoPoint location, string fontName,
