@@ -657,7 +657,7 @@ namespace CADability
         }
 
 
-        public bool DesignMode => throw new NotImplementedException();
+        public bool DesignMode; // => throw new NotImplementedException();
 
         IPropertyEntry IFrame.ContextMenuSource { get; set; }
 

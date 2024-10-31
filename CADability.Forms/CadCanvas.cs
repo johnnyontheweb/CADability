@@ -226,9 +226,12 @@ namespace CADability.Forms
         }
         protected override void Dispose(bool disposing)
         {
-            if (view != null && paintTo3D != null) (paintTo3D as PaintToOpenGL)?.Disconnect(this);
-            view?.Disconnect(this);
-            base.Dispose(disposing);
+            try { 
+                if (view != null && paintTo3D != null) 
+                    (paintTo3D as PaintToOpenGL)?.Disconnect(this);
+                view?.Disconnect(this);
+                base.Dispose(disposing);
+            } catch { }
         }
         protected override void OnMouseClick(MouseEventArgs e)
         {   // click seems not to be processed
