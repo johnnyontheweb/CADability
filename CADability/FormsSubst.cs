@@ -1,4 +1,5 @@
 ﻿using System;
+
 #if WEBASSEMBLY
 using CADability.WebDrawing;
 using Point = CADability.WebDrawing.Point;
@@ -57,7 +58,7 @@ namespace CADability.Substitutes
     public class PaintEventArgs 
     {
         public Rectangle ClipRectangle { get; set; }
-        public Graphics Graphics { get; set; }
+        public System.Drawing.Graphics Graphics { get; set; }
     }
 
     public enum CheckState
