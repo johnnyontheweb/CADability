@@ -19,7 +19,7 @@ namespace CADability.Attribute
         Filter filter;
         public CheckedAttributes(string resourceId, IAttributeList attributeList, Filter filter)
         {
-            base.resourceId = resourceId;
+            base.resourceIdInternal = resourceId;
             this.attributeList = attributeList;
             this.filter = filter;
         }
@@ -183,7 +183,7 @@ namespace CADability.Attribute
 
         public CheckedList(string resourceId, bool[] states, object[] assoziatedObjects, string[] names)
         {
-            base.resourceId = resourceId;
+            base.resourceIdInternal = resourceId;
             this.states = states;
             this.assoziatedObjects = assoziatedObjects;
             this.names = names;
@@ -468,7 +468,7 @@ namespace CADability.Attribute
                 }
                 return res;
             }
-            catch (System.Reflection.ReflectionTypeLoadException e)
+            catch (System.Reflection.ReflectionTypeLoadException)
             {
                 // MessageBox.Show(e.Message);
                 return new Dictionary<Type, string>();
@@ -510,7 +510,7 @@ namespace CADability.Attribute
             acceptedDimensionStyles = new Hashtable();
             acceptedHatchStyles = new Hashtable();
             acceptedTypes = new Hashtable();
-            base.resourceId = "Filter";
+            base.resourceIdInternal = "Filter";
         }
         internal FilterList Parent
         {
@@ -770,7 +770,7 @@ namespace CADability.Attribute
                 {
                     Name = newValue;
                 }
-                catch (NameAlreadyExistsException e) { }
+                catch (NameAlreadyExistsException) { }
             }
         }
         public override string LabelText { get => Name; set => Name = value; }
@@ -789,7 +789,7 @@ namespace CADability.Attribute
         {
             base.Added(propertyTreeView);
             base.LabelText = name;
-            base.resourceId = "FilterName";
+            base.resourceIdInternal = "FilterName";
         }
         public override void LabelChanged(string NewText)
         {
