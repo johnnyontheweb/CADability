@@ -42,7 +42,7 @@ namespace CADability.Substitutes
     {
         public KeyEventArgs(Keys keyData)
         {
-            KeyData = keyData;
+            KeyCode = KeyData = keyData;
         }
         public virtual bool Alt { get; }
         public bool Control { get; }
